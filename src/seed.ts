@@ -15,6 +15,10 @@ const prisma = new PrismaClient({ adapter });
 const ORGANIZER_EMAIL = 'organizer@bucc.test';
 const ORGANIZER_PASSWORD = 'bucc-demo-1234';
 
+// Placeholder used for events that have no real cover image yet.
+// Replace via: npx tsx scripts/upload-event-image.ts <file> <slug>
+const PLACEHOLDER_COVER = 'https://placehold.co/1200x800?text=No+Image';
+
 // Asia/Dhaka is UTC+6, so a Dhaka hour is (hour - 6) in UTC.
 function schedule(
   daysFromNow: number,
@@ -28,8 +32,6 @@ function schedule(
   const endsAt = new Date(startsAt.getTime() + durationHours * 3_600_000);
   return { startsAt, endsAt };
 }
-
-const cover = (seed: string) => `https://picsum.photos/seed/${seed}/1200/800`;
 
 async function main() {
   const organizer = await prisma.user.upsert({
@@ -49,7 +51,7 @@ async function main() {
       description:
         'A hands-on workshop covering repositories, branches, commits and pull requests. Bring a laptop and a GitHub account.',
       category: EventCategory.WORKSHOP,
-      coverImage: 'https://i.ibb.co.com/j9V9CW8q/Introduction-to-Git-Hub-Neon-Developer-Guide.png',
+      coverImage: PLACEHOLDER_COVER,
       venue: 'Computer Lab 2, Main Campus',
       capacity: 40,
       ...schedule(6, 15, 3),
@@ -60,7 +62,7 @@ async function main() {
       description:
         'A talk on how developers add language model features to real web apps, with a live demo and Q and A.',
       category: EventCategory.TALK,
-      coverImage: cover('bucc-ai'),
+      coverImage: PLACEHOLDER_COVER,
       venue: 'Auditorium, Main Campus',
       capacity: 120,
       ...schedule(10, 17, 2),
@@ -71,7 +73,7 @@ async function main() {
       description:
         'Meet other members over board games and snacks. No experience needed, just good company.',
       category: EventCategory.SOCIAL,
-      coverImage: cover('bucc-games'),
+      coverImage: PLACEHOLDER_COVER,
       venue: 'Student Lounge, Block B',
       capacity: 50,
       ...schedule(13, 18, 3),
@@ -82,7 +84,7 @@ async function main() {
       description:
         'A one-day build sprint. Form a team, pick a theme, and ship a working demo by the evening showcase.',
       category: EventCategory.HACKATHON,
-      coverImage: cover('bucc-hack'),
+      coverImage: PLACEHOLDER_COVER,
       venue: 'Innovation Hall, Main Campus',
       capacity: 80,
       ...schedule(20, 9, 10),
@@ -93,7 +95,7 @@ async function main() {
       description:
         'A full-day workshop on HTML, CSS and JavaScript fundamentals, ending with a small portfolio page.',
       category: EventCategory.WORKSHOP,
-      coverImage: cover('bucc-web'),
+      coverImage: PLACEHOLDER_COVER,
       venue: 'Computer Lab 1, Main Campus',
       capacity: 60,
       ...schedule(-15, 10, 6),
@@ -104,7 +106,7 @@ async function main() {
       description:
         'Alumni and industry guests shared how they started their careers in software and answered student questions.',
       category: EventCategory.TALK,
-      coverImage: cover('bucc-careers'),
+      coverImage: PLACEHOLDER_COVER,
       venue: 'Auditorium, Main Campus',
       capacity: 150,
       ...schedule(-35, 16, 2),
@@ -118,9 +120,9 @@ async function main() {
       status: EventStatus.PUBLISHED,
       timezone: 'Asia/Dhaka',
     };
-    // organizerId and status are excluded from update to avoid relation-key errors
-    // and to preserve any manual status changes on existing rows.
-    const { organizerId: _org, status: _status, ...updateData } = createData;
+    // coverImage excluded from update so re-seeding never overwrites
+    // images uploaded via the upload script.
+    const { organizerId: _org, coverImage: _img, ...updateData } = createData;
     await prisma.event.upsert({
       where: { slug: sample.slug },
       update: updateData,
@@ -131,6 +133,7 @@ async function main() {
   console.log(
     `Seeded organizer ${ORGANIZER_EMAIL} and ${samples.length} events`,
   );
+  // Gallery images are managed through the API — no seed data.
 }
 
 main()

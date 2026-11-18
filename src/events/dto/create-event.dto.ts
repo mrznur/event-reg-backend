@@ -37,7 +37,6 @@ export class CreateEventDto {
   @IsUrl({ protocols: ['http', 'https'], require_protocol: true })
   @MaxLength(2048)
   coverImage!: string;
-
   @Transform(trim)
   @IsString()
   @MinLength(2)

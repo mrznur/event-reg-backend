@@ -6,6 +6,9 @@ import { PrismaModule } from './prisma/prisma.module';
 import { EventsModule } from './events/events.module';
 import { StatsModule } from './stats/stats.module';
 import { RegistrationsModule } from './registrations/registrations.module';
+import { UploadsModule } from './uploads/uploads.module';
+import { GalleryModule } from './gallery/gallery.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -14,6 +17,8 @@ import { RegistrationsModule } from './registrations/registrations.module';
     EventsModule,
     StatsModule,
     RegistrationsModule,
+    UploadsModule,
+    GalleryModule,
   ],
   controllers: [AppController],
 })
