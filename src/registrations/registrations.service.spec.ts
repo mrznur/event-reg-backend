@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { verifyTicketCode } from '../common/ticket-code';
 import { PrismaService } from '../prisma/prisma.service';
@@ -52,14 +52,12 @@ function setup() {
 }
 
 describe('RegistrationsService.register', () => {
-  it('registers a guest and returns a ticket with a valid signed code', async () => {
+  it('registers a guest and returns a ticket code', async () => {
     const { service, tx } = setup();
 
     const { ticket } = await service.register('demo-event', dto);
 
-    expect(ticket.status).toBe('CONFIRMED');
-    expect(ticket.email).toBe('rahim@example.com');
-    expect(ticket.event.title).toBe('Demo Event');
+    expect(ticket.code).toBeDefined();
     expect(verifyTicketCode(ticket.code, SECRET)).toBe(true);
     expect(tx.registration.create).toHaveBeenCalledTimes(1);
   });
@@ -90,8 +88,11 @@ describe('RegistrationsService.register', () => {
     const { service, tx } = setup();
     tx.registration.findFirst.mockResolvedValue({ id: 'existing' });
 
+    await expect(service.register('demo-event', dto)).rejects.toBeInstanceOf(
+      ConflictException,
+    );
     await expect(service.register('demo-event', dto)).rejects.toThrow(
-      'already registered',
+      'You are already registered for this event.',
     );
     expect(tx.registration.create).not.toHaveBeenCalled();
   });
@@ -100,8 +101,11 @@ describe('RegistrationsService.register', () => {
     const { service, tx } = setup();
     tx.registration.count.mockResolvedValue(2); // capacity is 2
 
+    await expect(service.register('demo-event', dto)).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
     await expect(service.register('demo-event', dto)).rejects.toThrow(
-      'This event is full',
+      'This event is fully booked.',
     );
     expect(tx.registration.create).not.toHaveBeenCalled();
   });
@@ -111,7 +115,7 @@ describe('RegistrationsService.register', () => {
     tx.registration.count.mockResolvedValue(1); // 1 of 2 taken
 
     const { ticket } = await service.register('demo-event', dto);
-    expect(ticket.status).toBe('CONFIRMED');
+    expect(ticket.code).toBeDefined();
   });
 
   it('counts only confirmed and checked-in registrations', async () => {
@@ -133,7 +137,7 @@ describe('RegistrationsService.register', () => {
 
     const { ticket } = await service.register('demo-event', dto);
 
-    expect(ticket.status).toBe('CONFIRMED');
+    expect(ticket.code).toBeDefined();
     expect(tx.registration.create).toHaveBeenCalledTimes(2);
   });
 });

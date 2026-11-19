@@ -2,33 +2,26 @@ import { Transform } from 'class-transformer';
 import {
   IsEmail,
   IsString,
-  Matches,
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { trim, trimLower } from '../../common/trim';
 
 export class CreateRegistrationDto {
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim() : value,
-  )
+  @Transform(trim)
   @IsString()
   @MinLength(2)
   @MaxLength(80)
   name!: string;
 
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim().toLowerCase() : value,
-  )
+  @Transform(trimLower)
   @IsEmail()
   @MaxLength(254)
   email!: string;
 
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim() : value,
-  )
+  @Transform(trim)
   @IsString()
-  @Matches(/^[0-9+\-() ]{6,20}$/, {
-    message: 'phone must be 6 to 20 characters: digits, spaces and + - ( )',
-  })
+  @MinLength(7)
+  @MaxLength(20)
   phone!: string;
 }

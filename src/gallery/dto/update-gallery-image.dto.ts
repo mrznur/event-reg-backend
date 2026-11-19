@@ -6,9 +6,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
-
-const trim = ({ value }: { value: unknown }) =>
-  typeof value === 'string' ? value.trim() : value;
+import { trim } from '../../common/trim';
 
 export class UpdateGalleryImageDto {
   @IsOptional()

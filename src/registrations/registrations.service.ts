@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -80,7 +81,7 @@ export class RegistrationsService {
 
         if (duplicate) {
           throw new ConflictException(
-            'This email is already registered for this event',
+            'You are already registered for this event.',
           );
         }
 
@@ -94,7 +95,7 @@ export class RegistrationsService {
         });
 
         if (taken >= event.capacity) {
-          throw new ConflictException('This event is full');
+          throw new BadRequestException('This event is fully booked.');
         }
 
         const registration = await tx.registration.create({

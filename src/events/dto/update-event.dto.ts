@@ -1,4 +1,3 @@
-import { Transform } from 'class-transformer';
 import {
   IsDateString,
   IsEnum,
@@ -11,11 +10,10 @@ import {
   Min,
   MinLength,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { IsIanaTimeZone } from '../../common/is-time-zone';
+import { trim } from '../../common/trim';
 import { EventCategory } from '../../generated/prisma/enums';
-
-const trim = ({ value }: { value: unknown }) =>
-  typeof value === 'string' ? value.trim() : value;
 
 export class UpdateEventDto {
   @IsOptional()
