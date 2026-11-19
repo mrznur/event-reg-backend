@@ -20,7 +20,11 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "seed": "tsx src/seed.ts",
     "upload:image": "tsx scripts/upload-event-image.ts",
-    "upload:gallery": "tsx scripts/upload-gallery-image.ts"
+    "add:gallery-url": "tsx scripts/add-gallery-url.ts",
+    "set:cover-url": "tsx scripts/set-event-cover-url.ts",
+    "create:event": "tsx scripts/create-event.ts",
+    "delete:event": "tsx scripts/delete-event.ts",
+    "delete:gallery": "tsx scripts/delete-gallery-image.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
