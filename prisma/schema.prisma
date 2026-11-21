@@ -11,6 +11,7 @@ datasource db {
 enum Role {
   ORGANIZER
   ADMIN
+  ATTENDEE
 }
 
 enum EventStatus {
@@ -33,14 +34,25 @@ enum RegistrationStatus {
 }
 
 model User {
-  id           String         @id @default(cuid())
-  name         String
-  email        String         @unique
-  passwordHash String
-  role         Role           @default(ORGANIZER)
-  createdAt    DateTime       @default(now())
-  events       Event[]
-  checkIns     Registration[] @relation("CheckedInBy")
+  id                        String         @id @default(cuid())
+  name                      String
+  email                     String         @unique
+  passwordHash              String
+  role                      Role           @default(ORGANIZER)
+  verified                  Boolean        @default(false)
+  verificationCode          String?
+  verificationCodeExpiresAt DateTime?
+  lastResendAt              DateTime?
+  passwordResetCode         String?
+  passwordResetExpiresAt    DateTime?
+  createdAt                 DateTime       @default(now())
+  events                    Event[]
+  checkIns                  Registration[] @relation("CheckedInBy")
+}
+
+model SiteStat {
+  id    String @id
+  value Int
 }
 
 model Event {
