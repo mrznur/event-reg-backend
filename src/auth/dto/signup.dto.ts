@@ -1,18 +1,15 @@
 import { Transform } from 'class-transformer';
 import { IsEmail, IsString, MaxLength, MinLength } from 'class-validator';
+import { trim, trimLower } from '../../common/trim';
 
 export class SignupDto {
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim() : value,
-  )
+  @Transform(trim)
   @IsString()
   @MinLength(2)
   @MaxLength(80)
   name!: string;
 
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim().toLowerCase() : value,
-  )
+  @Transform(trimLower)
   @IsEmail()
   @MaxLength(254)
   email!: string;
