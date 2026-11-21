@@ -7,7 +7,7 @@ export class StatsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getStats() {
-    const [events, registrations, checkedIn] = await Promise.all([
+    const [events, registrations, checkedIn, membersStat] = await Promise.all([
       this.prisma.event.count({
         where: { status: EventStatus.PUBLISHED, endsAt: { lt: new Date() } },
       }),
@@ -21,7 +21,14 @@ export class StatsService {
       this.prisma.registration.count({
         where: { status: RegistrationStatus.CHECKED_IN },
       }),
+      this.prisma.siteStat.findUnique({ where: { id: 'activeMembers' } }),
     ]);
-    return { events, registrations, checkedIn };
+
+    return {
+      events,
+      registrations,
+      checkedIn,
+      activeMembers: membersStat?.value ?? 0,
+    };
   }
 }

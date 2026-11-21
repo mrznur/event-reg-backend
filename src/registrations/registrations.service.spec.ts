@@ -1,6 +1,7 @@
 import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { verifyTicketCode } from '../common/ticket-code';
+import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegistrationsService } from './registrations.service';
 
@@ -44,11 +45,15 @@ function setup() {
     $transaction: jest.fn((fn: (t: typeof tx) => Promise<unknown>) => fn(tx)),
   };
   const config = { getOrThrow: jest.fn().mockReturnValue(SECRET) };
+  const mail = {
+    sendTicketEmail: jest.fn().mockResolvedValue(undefined),
+  };
   const service = new RegistrationsService(
     prisma as unknown as PrismaService,
     config as unknown as ConfigService,
+    mail as unknown as MailService,
   );
-  return { service, prisma, tx };
+  return { service, prisma, tx, mail };
 }
 
 describe('RegistrationsService.register', () => {
