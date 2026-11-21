@@ -1,7 +1,7 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { hashPassword } from './common/password';
 import { PrismaClient } from './generated/prisma/client';
-import { EventCategory, EventStatus } from './generated/prisma/enums';
+import { EventCategory, EventStatus, Role } from './generated/prisma/enums';
 
 process.loadEnvFile('.env');
 
@@ -15,8 +15,17 @@ const prisma = new PrismaClient({ adapter });
 const ORGANIZER_EMAIL = 'organizer@bucc.test';
 const ORGANIZER_PASSWORD = 'bucc-demo-1234';
 
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? 'admin@bucc.club';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+if (!ADMIN_PASSWORD) {
+  throw new Error('ADMIN_PASSWORD is not set in .env');
+}
+
+const VERIFIED_ADMIN_PASSWORD: string = ADMIN_PASSWORD;
+
 // Placeholder used for events that have no real cover image yet.
-// Replace via: npx tsx scripts/upload-event-image.ts <file> <slug>
+// Replace via: npx tsx scripts/set-event-cover-url.ts "<cloudinaryUrl>" <eventSlug>
 const PLACEHOLDER_COVER = 'https://placehold.co/1200x800?text=No+Image';
 
 // Asia/Dhaka is UTC+6, so a Dhaka hour is (hour - 6) in UTC.
@@ -34,6 +43,21 @@ function schedule(
 }
 
 async function main() {
+  // ── Admin ────────────────────────────────────────────────────────────────
+  await prisma.user.upsert({
+    where: { email: ADMIN_EMAIL },
+    update: {},
+    create: {
+      name: 'BUCC Admin',
+      email: ADMIN_EMAIL,
+      passwordHash: await hashPassword(VERIFIED_ADMIN_PASSWORD),
+      role: Role.ADMIN,
+      verified: true,
+    },
+  });
+  console.log(`Seeded admin: ${ADMIN_EMAIL}`);
+
+  // ── Organizer ─────────────────────────────────────────────────────────────
   const organizer = await prisma.user.upsert({
     where: { email: ORGANIZER_EMAIL },
     update: {},
@@ -41,6 +65,7 @@ async function main() {
       name: 'BUCC Demo Organizer',
       email: ORGANIZER_EMAIL,
       passwordHash: await hashPassword(ORGANIZER_PASSWORD),
+      verified: true,
     },
   });
 
@@ -134,6 +159,14 @@ async function main() {
     `Seeded organizer ${ORGANIZER_EMAIL} and ${samples.length} events`,
   );
   // Gallery images are managed through the API — no seed data.
+
+  // Seed site stats
+  await prisma.siteStat.upsert({
+    where: { id: 'activeMembers' },
+    update: {},
+    create: { id: 'activeMembers', value: 1200 },
+  });
+  console.log('Seeded site stats');
 }
 
 main()
