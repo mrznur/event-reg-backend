@@ -9,10 +9,14 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '../auth/auth.guard';
+import { RoleGuard } from '../auth/role.guard';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '../generated/prisma/enums';
 import { UploadsService } from './uploads.service';
 
 @Controller('uploads')
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, RoleGuard)
+@Roles(Role.ORGANIZER, Role.ADMIN)
 export class UploadsController {
   constructor(private readonly uploads: UploadsService) {}
 

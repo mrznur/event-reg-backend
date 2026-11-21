@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { generateTicketCode } from '../common/ticket-code';
+import { MailService } from '../mail/mail.service';
 import { EventStatus, RegistrationStatus } from '../generated/prisma/enums';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateRegistrationDto } from './dto/create-registration.dto';
@@ -18,6 +19,7 @@ export class RegistrationsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
+    private readonly mail: MailService,
   ) {}
 
   async register(slug: string, dto: CreateRegistrationDto) {
@@ -107,6 +109,20 @@ export class RegistrationsService {
             ticketCode,
           },
           include: { event: true },
+        });
+
+        // Send ticket email — fire-and-forget, don't block the response.
+        // Registration already succeeded; email failure doesn't undo it.
+        this.mail.sendTicketEmail({
+          to: dto.email,
+          name: dto.name,
+          ticketCode: registration.ticketCode,
+          eventTitle: event.title,
+          eventSlug: event.slug,
+          venue: event.venue,
+          startsAt: event.startsAt,
+          endsAt: event.endsAt,
+          timezone: event.timezone,
         });
 
         return { ticket: toTicketResponse(registration) };
