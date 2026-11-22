@@ -222,5 +222,10 @@ npm run test
 - [ ] Set `CORS_ORIGIN` to your frontend domain
 - [ ] Set `FRONTEND_URL` to your frontend domain (used in QR codes and email links)
 - [ ] Set a strong `ADMIN_PASSWORD` before seeding
+- [ ] Set `ADMIN_LOGIN_PATH` to something secret before deploying
 - [ ] Use `npx prisma migrate deploy` (not `migrate dev`) in production
-- [ ] Rotate `JWT_SECRET` and `TICKET_SECRET` from the defaults
+- [ ] Run `npx prisma generate` before starting the server
+- [ ] Run `npx prisma db seed` once to create the admin user and seed data
+- [ ] Rotate `JWT_SECRET` and `TICKET_SECRET` from any dev values
+- [ ] Ensure `.env` is never committed — it is in `.gitignore`
+- [ ] Set `NODE_ENV=production` so Cloudinary uploads go to the `production` folder
