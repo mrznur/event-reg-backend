@@ -15,6 +15,7 @@ import { OrganizerModule } from './organizer/organizer.module';
 import { AdminModule } from './admin/admin.module';
 import { TicketsModule } from './tickets/tickets.module';
 import { ContactModule } from './contact/contact.module';
+import { AboutModule } from './about/about.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { ContactModule } from './contact/contact.module';
     AdminModule,
     TicketsModule,
     ContactModule,
+    AboutModule,
   ],
   controllers: [AppController],
   providers: [

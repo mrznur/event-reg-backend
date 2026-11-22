@@ -55,6 +55,20 @@ model SiteStat {
   value Int
 }
 
+enum AboutImageKey {
+  philosophy
+  mission
+  vision
+  values
+}
+
+model AboutImage {
+  key       AboutImageKey @id
+  url       String
+  alt       String
+  updatedAt DateTime      @updatedAt
+}
+
 model Event {
   id            String         @id @default(cuid())
   organizerId   String

@@ -167,6 +167,43 @@ async function main() {
     create: { id: 'activeMembers', value: 1200 },
   });
   console.log('Seeded site stats');
+
+  // Seed about images with placeholders
+  const aboutImages = [
+    {
+      key: 'philosophy',
+      url: 'https://res.cloudinary.com/coms6y4f/image/upload/v1795339382/Neon_Glass_Cubes_on_a_Circuit_Board.png',
+      alt: 'BUCC Philosophy',
+    },
+    {
+      key: 'mission',
+      url: 'https://res.cloudinary.com/coms6y4f/image/upload/v1795339380/Mission_Mind_Map_Whiteboard.png',
+      alt: 'BUCC Mission',
+    },
+    {
+      key: 'vision',
+      url: 'https://res.cloudinary.com/coms6y4f/image/upload/v1795339352/Our_Vision__Ideas_Taking_Flight.png',
+      alt: 'BUCC Vision',
+    },
+    {
+      key: 'values',
+      url: 'https://res.cloudinary.com/coms6y4f/image/upload/v1795339382/Core_Values_Digital_Network.png',
+      alt: 'BUCC Values',
+    },
+  ] as const;
+
+  for (const item of aboutImages) {
+    await prisma.aboutImage.upsert({
+      where: { key: item.key },
+      update: {},
+      create: {
+        key: item.key,
+        url: item.url,
+        alt: item.alt,
+      },
+    });
+  }
+  console.log('Seeded about images');
 }
 
 main()
