@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
 import { UserAuthController } from './user-auth.controller';
+import { AdminAuthController } from './admin-auth.controller';
 import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
 import { RoleGuard } from './role.guard';
@@ -18,7 +19,7 @@ import { SESSION_MAX_AGE_SECONDS } from './auth.constants';
       }),
     }),
   ],
-  controllers: [AuthController, UserAuthController],
+  controllers: [AuthController, UserAuthController, AdminAuthController],
   providers: [AuthService, AuthGuard, RoleGuard],
   exports: [AuthGuard, JwtModule, RoleGuard],
 })
