@@ -217,78 +217,77 @@ npm run test
 
 ---
 
-## Deployment (Fly.io)
+## Deployment (Vercel)
 
 ### First time setup
 
-Install the Fly CLI and log in:
+Install Vercel CLI:
 ```bash
-# Install flyctl
-# Windows: winget install -e --id Fly.io.flyctl
-# Mac: brew install flyctl
-
-flyctl auth login
+npm install -g vercel
 ```
 
-Launch the app (run once):
+Login:
 ```bash
-flyctl launch --no-deploy
-```
-
-When prompted, use the existing `fly.toml` — do not overwrite it.
-
-### Set secrets (environment variables)
-
-Set all required secrets on Fly before deploying:
-
-```bash
-flyctl secrets set DATABASE_URL="postgresql://..."
-flyctl secrets set JWT_SECRET="..."
-flyctl secrets set TICKET_SECRET="..."
-flyctl secrets set CLOUDINARY_CLOUD_NAME="..."
-flyctl secrets set CLOUDINARY_API_KEY="..."
-flyctl secrets set CLOUDINARY_API_SECRET="..."
-flyctl secrets set MAIL_FROM="..."
-flyctl secrets set MAIL_USER="..."
-flyctl secrets set MAIL_APP_PASSWORD="..."
-flyctl secrets set FRONTEND_URL="https://your-frontend.com"
-flyctl secrets set CORS_ORIGIN="https://your-frontend.com"
-flyctl secrets set CONTACT_EMAIL="info@bucc.club"
-flyctl secrets set ADMIN_EMAIL="admin@bucc.club"
-flyctl secrets set ADMIN_PASSWORD="your-strong-password"
-flyctl secrets set ADMIN_LOGIN_PATH="your-secret-path"
+vercel login
 ```
 
 ### Deploy
 
+From the project root:
 ```bash
-flyctl deploy
+vercel
 ```
 
-### Run migrations and seed (first deploy only)
+For production:
+```bash
+vercel --prod
+```
+
+### Environment variables
+
+Set these in the Vercel dashboard under **Project → Settings → Environment Variables**, or via CLI:
 
 ```bash
-flyctl ssh console
+vercel env add DATABASE_URL
+vercel env add JWT_SECRET
+vercel env add TICKET_SECRET
+vercel env add CLOUDINARY_CLOUD_NAME
+vercel env add CLOUDINARY_API_KEY
+vercel env add CLOUDINARY_API_SECRET
+vercel env add MAIL_FROM
+vercel env add MAIL_USER
+vercel env add MAIL_APP_PASSWORD
+vercel env add FRONTEND_URL
+vercel env add CORS_ORIGIN
+vercel env add CONTACT_EMAIL
+vercel env add ADMIN_EMAIL
+vercel env add ADMIN_PASSWORD
+vercel env add ADMIN_LOGIN_PATH
+```
+
+### Vercel project settings
+
+In the Vercel dashboard under **Project → Settings → General**:
+
+| Setting | Value |
+|---|---|
+| Framework Preset | NestJS |
+| Build Command | `npm run vercel-build` |
+| Output Directory | `dist` |
+| Install Command | `npm install` |
+
+### Run migrations and seed (once after first deploy)
+
+Run locally pointing at your production database:
+```bash
 npx prisma migrate deploy
 npx prisma db seed
-exit
 ```
 
-### Subsequent deploys
-
+Or set `DATABASE_URL` to your production Neon URL in a temporary `.env.production` file and run:
 ```bash
-flyctl deploy
-```
-
-Migrations run automatically via the Dockerfile build step (`prisma generate`). For schema changes, run `npx prisma migrate deploy` via SSH after deploying.
-
-### Useful commands
-
-```bash
-flyctl status          # check app status
-flyctl logs            # live logs
-flyctl ssh console     # SSH into the running container
-flyctl secrets list    # list set secrets (values hidden)
+dotenv -e .env.production -- npx prisma migrate deploy
+dotenv -e .env.production -- npx prisma db seed
 ```
 
 - [ ] Set `CORS_ORIGIN` to your frontend domain

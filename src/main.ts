@@ -11,8 +11,6 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   // ── CORS ───────────────────────────────────────────────────────────────────
-  // Reads allowed origins from CORS_ORIGIN env var (comma-separated).
-  // Falls back to localhost:3000 for local development.
   const rawOrigins = process.env.CORS_ORIGIN ?? 'http://localhost:3000';
   const allowedOrigins = rawOrigins.split(',').map((o) => o.trim());
 
@@ -29,4 +27,8 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? 4000);
 }
+
 void bootstrap();
+
+// Export for Vercel serverless
+export default bootstrap;
