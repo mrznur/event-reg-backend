@@ -217,7 +217,79 @@ npm run test
 
 ---
 
-## Production Checklist
+## Deployment (Fly.io)
+
+### First time setup
+
+Install the Fly CLI and log in:
+```bash
+# Install flyctl
+# Windows: winget install -e --id Fly.io.flyctl
+# Mac: brew install flyctl
+
+flyctl auth login
+```
+
+Launch the app (run once):
+```bash
+flyctl launch --no-deploy
+```
+
+When prompted, use the existing `fly.toml` — do not overwrite it.
+
+### Set secrets (environment variables)
+
+Set all required secrets on Fly before deploying:
+
+```bash
+flyctl secrets set DATABASE_URL="postgresql://..."
+flyctl secrets set JWT_SECRET="..."
+flyctl secrets set TICKET_SECRET="..."
+flyctl secrets set CLOUDINARY_CLOUD_NAME="..."
+flyctl secrets set CLOUDINARY_API_KEY="..."
+flyctl secrets set CLOUDINARY_API_SECRET="..."
+flyctl secrets set MAIL_FROM="..."
+flyctl secrets set MAIL_USER="..."
+flyctl secrets set MAIL_APP_PASSWORD="..."
+flyctl secrets set FRONTEND_URL="https://your-frontend.com"
+flyctl secrets set CORS_ORIGIN="https://your-frontend.com"
+flyctl secrets set CONTACT_EMAIL="info@bucc.club"
+flyctl secrets set ADMIN_EMAIL="admin@bucc.club"
+flyctl secrets set ADMIN_PASSWORD="your-strong-password"
+flyctl secrets set ADMIN_LOGIN_PATH="your-secret-path"
+```
+
+### Deploy
+
+```bash
+flyctl deploy
+```
+
+### Run migrations and seed (first deploy only)
+
+```bash
+flyctl ssh console
+npx prisma migrate deploy
+npx prisma db seed
+exit
+```
+
+### Subsequent deploys
+
+```bash
+flyctl deploy
+```
+
+Migrations run automatically via the Dockerfile build step (`prisma generate`). For schema changes, run `npx prisma migrate deploy` via SSH after deploying.
+
+### Useful commands
+
+```bash
+flyctl status          # check app status
+flyctl logs            # live logs
+flyctl ssh console     # SSH into the running container
+flyctl secrets list    # list set secrets (values hidden)
+```
 
 - [ ] Set `CORS_ORIGIN` to your frontend domain
 - [ ] Set `FRONTEND_URL` to your frontend domain (used in QR codes and email links)
