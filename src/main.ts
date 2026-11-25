@@ -1,59 +1,19 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import cookieParser from 'cookie-parser';
-import { AppModule } from './app.module';
-import type { INestApplication } from '@nestjs/common';
-
-let cachedApp: INestApplication;
-
-async function createApp(): Promise<INestApplication> {
-  if (cachedApp) return cachedApp;
-
-  const app = await NestFactory.create(AppModule, { logger: ['error', 'warn'] });
-
-  app.setGlobalPrefix('api');
-  app.use(cookieParser());
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
-
-  // ── CORS ───────────────────────────────────────────────────────────────────
-  const rawOrigins = process.env.CORS_ORIGIN ?? 'http://localhost:3000';
-  const allowedOrigins = rawOrigins.split(',').map((o) => o.trim());
-
-  app.enableCors({
-    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
-      callback(new Error(`CORS: origin ${origin} not allowed`));
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  });
-
-  await app.init();
-  cachedApp = app;
-  return app;
-}
-
-// ── Local dev: start listening ─────────────────────────────────────────────
-if (process.env.VERCEL !== '1') {
-  createApp().then((app) => {
-    app.listen(process.env.PORT ?? 4000);
-  });
-}
-
-// ── Vercel serverless export ───────────────────────────────────────────────
 import { ExpressAdapter } from '@nestjs/platform-express';
+import cookieParser from 'cookie-parser';
 import express from 'express';
 import type { Request, Response } from 'express';
+import { AppModule } from './app.module';
 
-const server = express();
+const expressApp = express();
+let isReady = false;
 
-export default async function handler(req: Request, res: Response) {
+async function bootstrap() {
   const app = await NestFactory.create(
     AppModule,
-    new ExpressAdapter(server),
-    { logger: false },
+    new ExpressAdapter(expressApp),
+    { logger: ['error', 'warn'] },
   );
 
   app.setGlobalPrefix('api');
@@ -64,7 +24,10 @@ export default async function handler(req: Request, res: Response) {
   const allowedOrigins = rawOrigins.split(',').map((o) => o.trim());
 
   app.enableCors({
-    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
       if (!origin) return callback(null, true);
       if (allowedOrigins.includes(origin)) return callback(null, true);
       callback(new Error(`CORS: origin ${origin} not allowed`));
@@ -75,5 +38,19 @@ export default async function handler(req: Request, res: Response) {
   });
 
   await app.init();
-  server(req, res);
+  isReady = true;
+  return app;
+}
+
+// Local dev
+if (process.env.VERCEL !== '1') {
+  bootstrap().then((app) => app.listen(process.env.PORT ?? 4000));
+}
+
+// Vercel serverless handler
+const appPromise = bootstrap();
+
+export default async function handler(req: Request, res: Response) {
+  await appPromise;
+  expressApp(req, res);
 }
