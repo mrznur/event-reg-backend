@@ -7,7 +7,6 @@ import type { Request, Response } from 'express';
 import { AppModule } from './app.module';
 
 const expressApp = express();
-let isReady = false;
 
 async function bootstrap() {
   const app = await NestFactory.create(
@@ -15,6 +14,9 @@ async function bootstrap() {
     new ExpressAdapter(expressApp),
     { logger: ['error', 'warn'] },
   );
+
+  // Trust Vercel's proxy so req.secure and req.ip are correct
+  expressApp.set('trust proxy', 1);
 
   app.setGlobalPrefix('api');
   app.use(cookieParser());
@@ -38,17 +40,17 @@ async function bootstrap() {
   });
 
   await app.init();
-  isReady = true;
   return app;
 }
 
-// Local dev
+// ── Local development ─────────────────────────────────────────────────────────
 if (process.env.VERCEL !== '1') {
   bootstrap().then((app) => app.listen(process.env.PORT ?? 4000));
 }
 
-// Vercel serverless handler
-const appPromise = bootstrap();
+// ── Vercel serverless handler ─────────────────────────────────────────────────
+// Bootstrap runs once and is reused across invocations (warm starts).
+const appPromise = process.env.VERCEL === '1' ? bootstrap() : Promise.resolve();
 
 export default async function handler(req: Request, res: Response) {
   await appPromise;
